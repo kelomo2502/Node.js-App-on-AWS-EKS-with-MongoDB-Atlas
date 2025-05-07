@@ -74,22 +74,34 @@
 # kustomize/base/deployment.yaml
 # kustomize/base/deployment.yaml
 # kustomize/base/deployment.yaml
+
+# kustomize/base/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: node-k8s-app
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-k8s-app
   template:
+    metadata:
+      labels:
+        app: node-k8s-app
     spec:
       containers:
       - name: node-k8s-app
+        image: kelomo2502/node-k8s-app:v2  # REQUIRED - specify your image here
+        ports:
+        - containerPort: 3000
         env:
         - name: MONGO_URI
           valueFrom:
             secretKeyRef:
               name: db-secret
               key: MONGO_URI
-        - name: MONGO_DB_NAME  # From overlay configmap
+        - name: MONGO_DB_NAME
           valueFrom:
             configMapKeyRef:
               name: app-config
