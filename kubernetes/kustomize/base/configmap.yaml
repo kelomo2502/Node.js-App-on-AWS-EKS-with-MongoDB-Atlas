@@ -1,0 +1,8 @@
+# kustomize/base/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  MONGO_OPTIONS: "retryWrites=true&w=majority"  # Non-sensitive only
+  APP_NAME: "argoCd-app"

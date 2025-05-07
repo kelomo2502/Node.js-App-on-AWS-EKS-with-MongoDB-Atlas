@@ -1,0 +1,41 @@
+# # kustomize/overlays/dev/kustomization.yaml
+# apiVersion: kustomize.config.k8s.io/v1beta1
+# kind: Kustomization
+
+# resources:
+# - ../../base
+
+# secretGenerator:
+# - envs:
+#   - secret.env
+#   name: db-secret
+#   options:
+#     disableNameSuffixHash: true
+
+# # Replace 'behavior: merge' with this:
+# configMapGenerator:
+# - literals:
+#   - ENVIRONMENT=dev
+#   - MONGO_DB_NAME=argoCd-app-dev
+#   name: app-config
+
+# kustomize/overlays/dev/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+
+secretGenerator:
+- name: db-secret
+  envs:
+  - secret.env
+  options:
+    disableNameSuffixHash: true
+
+configMapGenerator:
+- name: app-config
+  behavior: merge  # Explicit merge behavior
+  literals:
+  - ENVIRONMENT=dev
+  - MONGO_DB_NAME=argoCd-app-dev

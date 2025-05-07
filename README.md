@@ -419,5 +419,88 @@ Package your entire app for sharing or CI/CD
 
 Great for complex or production-ready deployments
 
+## Phase 4: Deploying to Minikube Using Kustomize
+### What is Kustomize?
+Kustomize lets you customize raw Kubernetes YAML files using overlays and patches — no templating language or values files like Helm. You work with plain YAML and layer environments (dev, prod, etc.) cleanly.
 
+### Folder Structure (Kustomize Style)
+We’ll set it up like this:
 
+kustomize/
+├── base/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── kustomization.yaml
+├── overlays/
+│   ├── dev/
+│   │   ├── kustomization.yaml
+│   │   └── patch-env.yaml
+
+#### Step-by-Step Guide
+1. Create Directory Structure
+```bash
+mkdir -p kustomize/base
+mkdir -p kustomize/overlays/dev
+
+```
+2. Write the Base Deployment
+kustomize/base/deployment.yaml
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-k8s-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-k8s-app
+  template:
+    metadata:
+      labels:
+        app: node-k8s-app
+    spec:
+      containers:
+        - name: node-k8s-app
+          image: node-k8s-app:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_URI
+              value: "mongodb://your-mongodb-url"
+
+```
+3. Write the Base Service
+kustomize/base/service.yaml
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-k8s-app
+spec:
+  selector:
+    app: node-k8s-app
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+```
+4. Create kustomization.yaml for Base
+kustomize/base/kustomization.yaml
+```yaml
+resources:
+  - deployment.yaml
+  - service.yaml
+
+```
+7. Build Docker Image
+Make sure you're using Minikube Docker env if you are not pulling image from remote container registry:
+```bash
+eval $(minikube docker-env)
+docker build -t node-k8s-app ./backend
+
+```
+8. Apply with Kustomize
+Navigate to overlay folder and apply:
+`kubectl apply -k kustomize/overlays/dev`

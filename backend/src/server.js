@@ -41,7 +41,7 @@ process.on('SIGINT', async () => {
 });
 // Test route
 app.get('/', (req, res) => {
-  res.send('Node K8s App running!');
+  res.send('Node K8s App running for kustomize!');
 });
 
 const PORT = process.env.PORT || 3000;

@@ -8,6 +8,9 @@ coverage/
 .nyc_output/
 
 # Environment variables
+# .gitignore
+**/secret.env
+**/*.secret
 .env
 .env.local
 .env.development

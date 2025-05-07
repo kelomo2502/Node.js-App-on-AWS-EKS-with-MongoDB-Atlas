@@ -1,0 +1,96 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: node-k8s-app
+#   labels:
+#     app: node-k8s-app
+#     environment: production  # Environment label
+# spec:
+#   replicas: 2  # Better for high availability
+#   revisionHistoryLimit: 3  # Limits stored rollback history
+#   strategy:
+#     rollingUpdate:
+#       maxSurge: 1
+#       maxUnavailable: 0
+#     type: RollingUpdate
+#   selector:
+#     matchLabels:
+#       app: node-k8s-app
+#   template:
+#     metadata:
+#       labels:
+#         app: node-k8s-app
+#         environment: production
+#     spec:
+#       securityContext:
+#         runAsNonRoot: true
+#         runAsUser: 1000
+#         fsGroup: 2000
+#       containers:
+#         - name: node-k8s-app
+#           image: node-k8s-app:1.0.0  # Specific version instead of 'latest'
+#           imagePullPolicy: IfNotPresent
+#           ports:
+#             - name: http
+#               containerPort: 3000
+#               protocol: TCP
+#           env:
+#             - name: MONGO_URI
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: db-secret
+#                   key: MONGO_URI
+#             - name: NODE_ENV
+#               value: "production"
+#           resources:
+#             requests:
+#               cpu: "100m"
+#               memory: "256Mi"
+#             limits:
+#               cpu: "500m"
+#               memory: "512Mi"
+#           livenessProbe:
+#             httpGet:
+#               path: /health
+#               port: http
+#             initialDelaySeconds: 30
+#             periodSeconds: 10
+#             timeoutSeconds: 5
+#           readinessProbe:
+#             httpGet:
+#               path: /ready
+#               port: http
+#             initialDelaySeconds: 5
+#             periodSeconds: 5
+#           securityContext:
+#             allowPrivilegeEscalation: false
+#             readOnlyRootFilesystem: true
+#             capabilities:
+#               drop:
+#                 - ALL
+#       restartPolicy: Always
+#       terminationGracePeriodSeconds: 30
+
+# kustomize/base/deployment.yaml
+# kustomize/base/deployment.yaml
+# kustomize/base/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-k8s-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: node-k8s-app
+        env:
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MONGO_URI
+        - name: MONGO_DB_NAME  # From overlay configmap
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MONGO_DB_NAME
