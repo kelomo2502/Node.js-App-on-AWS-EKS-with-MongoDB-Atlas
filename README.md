@@ -262,3 +262,19 @@ So you don’t need to push images to DockerHub:
 Now, when you run:
 `docker build -t node-k8s-app .`
 The image is built inside Minikube’s Docker environment, and Kubernetes can access it directly.
+
+| Command              | Purpose                                    |
+| -------------------- | ------------------------------------------ |
+| `minikube status`    | Check status of the cluster                |
+| `minikube dashboard` | Launches a visual dashboard (try it!)      |
+| `minikube stop`      | Stop the cluster                           |
+| `minikube delete`    | Delete the cluster                         |
+| `minikube tunnel`    | Exposes LoadBalancer services to localhost |
+
+## Troubleshooting Tips
+Permission denied on Docker: Make sure you ran sudo usermod -aG docker $USER and newgrp docker.
+
+Ingress pods stuck: Run kubectl describe pod to check errors. Usually a restart helps.
+
+Driver issues: Run minikube start --driver=none (Linux only) or --driver=virtualbox if Docker fails.
+
