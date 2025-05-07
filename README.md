@@ -216,10 +216,49 @@ kubectl is the CLI tool to interact with Kubernetes.
 
 Linux:
 
-````bash
+```bash
 curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 kubectl version --client
 
 ```
+c. install minikube
+
+```bash
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+minikube version
+
+```
+
+3. Start Minikube
+`minikube start --driver=docker`
+Explanation:
+
+- --driver=docker: Tells Minikube to use Docker as the VM/container runtime.
+
+- If using VirtualBox or none, run minikube drivers to list what's supported.
+
+4. Confirm It Works
+`kubectl get nodes`
+You should see 1 node in the Ready state, like:
+```bash
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   1m    v1.29.0
+
+```
+
+5. Enable Ingress Controller (Important for Web Access)
+Kubernetes needs an Ingress controller to expose services to your browser.
+`minikube addons enable ingress`
+Check its status:
+`kubectl get pods -n ingress-nginx`
+
+6. Use Minikube Docker Daemon (Optional but Helpful)
+So you don’t need to push images to DockerHub:
+`eval $(minikube docker-env)`
+
+Now, when you run:
+`docker build -t node-k8s-app .`
+The image is built inside Minikube’s Docker environment, and Kubernetes can access it directly.
