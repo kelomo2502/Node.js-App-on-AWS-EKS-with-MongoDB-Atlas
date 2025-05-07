@@ -278,3 +278,146 @@ Ingress pods stuck: Run kubectl describe pod to check errors. Usually a restart 
 
 Driver issues: Run minikube start --driver=none (Linux only) or --driver=virtualbox if Docker fails.
 
+✅ At This Point You Should Have:
+A working Minikube Kubernetes cluster
+
+Docker and kubectl installed
+
+The ability to build Docker images inside Minikube
+
+
+## Phase 3: Deploying the App to Minikube Using Helm
+### What is Helm?
+**Helm is the package manager for Kubernetes. Think of it like apt for Ubuntu or npm for Node.js—but for Kubernetes apps. It lets you template Kubernetes YAML files, reuse configurations, and manage deployments easily.**
+
+## Folder Structure
+We'll create this inside the project root:
+project-root/
+├── backend/
+├── helm/
+│   └── node-app/         
+│       ├── templates/
+│       └── values.yaml
+
+## Step-by-Step Guide
+1. Create the Helm Chart
+In your project root:
+
+```bash
+mkdir -p helm
+cd helm
+helm create node-app
+
+```
+This creates a sample chart with default templates.
+
+2. Understand the Helm Chart Layout
+```bash
+node-app/
+├── Chart.yaml            # Info about the chart (name, version)
+├── values.yaml           # Configurable values
+├── templates/            # All Kubernetes YAML templates
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── ...
+```
+3. Clean Up Unnecessary Files
+You can remove or empty files like:
+```bash
+rm templates/tests/*
+rm templates/ingress.yaml templates/hpa.yaml templates/serviceaccount.yaml
+
+```
+Then clean values.yaml to something simpler:
+```yaml
+# charts/node-app/values.yaml
+replicaCount: 1
+
+image:
+  repository: node-k8s-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+mongodb:
+  uri: "mongodb://your-mongodb-url"
+
+resources: {}
+
+
+```
+4. Edit deployment.yaml Template
+Modify templates/deployment.yaml:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_URI
+              value: {{ .Values.mongodb.uri | quote }}
+
+```
+5. Edit service.yam
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: {{ .Values.service.type }}
+
+```
+6. Install the App with Helm
+Ensure your image is built inside Minikube’s Docker if you don't plan to use image from a remote container registry:
+```bash
+eval $(minikube docker-env)
+docker build -t node-k8s-app ./backend
+```
+
+Now install with Helm:
+```bash
+cd helm
+helm install node-app ./node-app
+```
+Check status:
+`kubectl get all`
+7. Access the App
+Expose it temporarily via port-forward:
+`kubectl port-forward service/node-app 3000:3000`
+
+[Then visit:](http://localhost:3000)
+
+## Summary of Helm Benefits
+Reuse templates with variables (values.yaml)
+
+Package your entire app for sharing or CI/CD
+
+Great for complex or production-ready deployments
+
+
+
